@@ -7,8 +7,8 @@ import (
  _"github.com/denisenkom/go-mssqldb"
 )
 
-func FireQuery(username string, password string, host string, dbname string, query string) (string,error){
-	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";database=" + dbname 									//constructing the URL
+func FireQuery(username string, password string, host string, port string, dbname string, query string) (string,error){
+	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port="+port+";database=" + dbname 									//constructing the URL
 	db, err := sql.Open("mssql", dsn)
 	if err != nil {
 		fmt.Println("Cannot connect: ", err.Error())														//Cannot connect to DB
@@ -84,6 +84,6 @@ rows, err := db.Query(cmd)																										//Executing the query
 	}
 	op=strings.TrimSuffix(op,`,`)
 	op=op+`]}`
-	
+
 	return nil,op
 }
