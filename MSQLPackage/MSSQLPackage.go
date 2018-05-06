@@ -8,7 +8,7 @@ import (
 )
 
 func UpdateQuery(username string, password string, host string, port string, dbname string, query string) (string,error){
-  dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port="+port+";database=" + dbname 									//constructing the URL
+  dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port="+port+";database=" + dbname 								//constructing the URL
   db, err := sql.Open("mssql", dsn)
   if err != nil {
     fmt.Println("Cannot connect: ", err.Error())														//Cannot connect to DB
@@ -20,12 +20,19 @@ func UpdateQuery(username string, password string, host string, port string, dbn
     return "Cannot connect: ", err
   }
   defer db.Close()
-  var result string
-  result,err = exec(db, query)
+
+  rows, err := db.Exec(query)
+  if err != nil {
+		return "Error executing query",err
+	}
+
+  fmt.Println(rows.RowsAffected())
+  op:=`"{numberOfRowsAffected":"`+fmt.Sprintf("%v",(rows.RowsAffected))+`"}`
+  return op,nil
 }
 
 func FireQuery(username string, password string, host string, port string, dbname string, query string) (string,error){
-	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port="+port+";database=" + dbname 									//constructing the URL
+	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port="+port+";database=" + dbname 								//constructing the URL
 	db, err := sql.Open("mssql", dsn)
 	if err != nil {
 		fmt.Println("Cannot connect: ", err.Error())														//Cannot connect to DB
@@ -46,7 +53,7 @@ func FireQuery(username string, password string, host string, port string, dbnam
 		return result,nil
 }
 
-func exec(db *sql.DB, cmd string) (result string,err error,) {
+func exec(db *sql.DB, cmd string) (result string,err error) {
 	var op string
 rows, err := db.Query(cmd)																										//Executing the query
 	if err != nil {
@@ -58,17 +65,18 @@ rows, err := db.Query(cmd)																										//Executing the query
 		return "",err
 	}
 	if cols == nil {
-		return nil,"No Columns"
+		return "No Columns",nil
 	}
 
 	vals := make([]interface{}, len(cols))
 	for i := 0; i < len(cols); i++ {																			//making an interface to store the row values
 		vals[i] = new(interface{})
-	/*	if i != 0 {
+		if i != 0 {
 			fmt.Print("\t")
-		}*/
+		}
 
 	}
+
 		var currRow string;
 		var str string;
 		op=`{ "rows": [`
@@ -96,7 +104,7 @@ rows, err := db.Query(cmd)																										//Executing the query
 
 }
 	if rows.Err() != nil {
-		return rows.Err(),"Some error"
+		return "Some error",rows.Err()
 	}
 	op=strings.TrimSuffix(op,`,`)
 	op=op+`]}`
