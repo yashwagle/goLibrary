@@ -7,30 +7,34 @@ import (
  _"github.com/denisenkom/go-mssqldb"
 )
 
-func UpdateQuery(username string, password string, host string, port string, dbname string, query string) (string,error){
-  dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port="+port+";database=" + dbname 								//constructing the URL
-  db, err := sql.Open("mssql", dsn)
-  if err != nil {
-    fmt.Println("Cannot connect: ", err.Error())														//Cannot connect to DB
-    return "Cannot connect: ", err
-  }
-  err = db.Ping()
-  if err != nil {
-    fmt.Println("Cannot connect: ", err.Error())												//Cannot Connect to DB
-    return "Cannot connect: ", err
-  }
-  defer db.Close()
+func UpdateQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
+	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
+	db, err := sql.Open("mssql", dsn)
+	if err != nil {
+		fmt.Println("Cannot connect: ", err.Error()) //Cannot connect to DB
+		return "Cannot connect: ", err
+	}
+	err = db.Ping()
+	if err != nil {
+		fmt.Println("Cannot connect: ", err.Error()) //Cannot Connect to DB
+		return "Cannot connect: ", err
+	}
+	defer db.Close()
 
-  rows, err := db.Exec(query)
-  if err != nil {
-		return "Error executing query",err
+	rows, err := db.Exec(query)
+	if err != nil {
+		return "Error executing query", err
 	}
 
-//  fmt.Println(rows.RowsAffected())
-  op:=`{"numberOfRowsAffected":"`+fmt.Sprintf("%v",(rows.RowsAffected))+`"}`            //Getting number of Rows Affected
-  return op,nil
-}
+	//  fmt.Println(rows.RowsAffected())
+	num, err := rows.RowsAffected()
+	if err != nil {
+		return "Error", err
+	}
 
+	op := `{"numberOfRowsAffected":"` + fmt.Sprintf("%v", num) + `"}` //Getting number of Rows Affected
+	return op, nil
+}
 func FireQuery(username string, password string, host string, port string, dbname string, query string) (string,error){
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port="+port+";database=" + dbname 								//constructing the URL
 	db, err := sql.Open("mssql", dsn)
