@@ -27,7 +27,7 @@ func UpdateQuery(username string, password string, host string, port string, dbn
 	}
 
 //  fmt.Println(rows.RowsAffected())
-  op:=`"{numberOfRowsAffected":"`+fmt.Sprintf("%v",(rows.RowsAffected))+`"}`            //Getting number of Rows Affected
+  op:=`"{numberOfRowsAffected":"`+fmt.Sprintf("%v",(rows.RowsAffected))+`}"`            //Getting number of Rows Affected
   return op,nil
 }
 
