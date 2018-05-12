@@ -21,7 +21,7 @@ func UpdateQuery(username string, password string, host string, port string, dbn
 		fmt.Println("Cannot connect: ", err.Error()) //Cannot Connect to DB
 		return "Cannot connect: ", err
 	}
-	defer db.Close()
+	defer closeconnection(db)
 
 	rows, err := db.Exec(query)
 	if err != nil {
@@ -38,6 +38,11 @@ func UpdateQuery(username string, password string, host string, port string, dbn
 	return op, nil
 }
 
+func closeconnection(dbconn *sql.DB) {
+	dbconn.Close()
+
+}
+
 //FireQuery is used to execute Select Queries
 func FireQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
@@ -51,7 +56,7 @@ func FireQuery(username string, password string, host string, port string, dbnam
 		//fmt.Println("Cannot connect: ", err.Error())												//Cannot Connect to DB
 		return "Cannot connect: ", err
 	}
-	defer db.Close()
+	defer closeconnection(db)
 	var result string
 	result, err = exec(db, query) //Calling the execute function
 	if err != nil {
@@ -74,7 +79,7 @@ func CreateQuery(username string, password string, host string, port string, dbn
 		fmt.Println("Cannot connect: ", err.Error()) //Cannot Connect to DB
 		return "Cannot connect: ", err
 	}
-	defer db.Close()
+	defer closeconnection(db)
 
 	_, err = db.Exec(query)
 	if err != nil {
