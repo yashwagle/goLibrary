@@ -1,13 +1,14 @@
-package MSQLPackage
+package mssqlpackage
 
 import (
 	"database/sql"
 	"fmt"
 	"strings"
-
+	//Import to get the MSSQL driver
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
+//UpdateQuery is used to execute DML operations like insert, update, delete
 func UpdateQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
 	db, err := sql.Open("mssql", dsn)
@@ -36,6 +37,8 @@ func UpdateQuery(username string, password string, host string, port string, dbn
 	op := `{"numberOfRowsAffected":"` + fmt.Sprintf("%v", num) + `"}` //Getting number of Rows Affected
 	return op, nil
 }
+
+//FireQuery is used to execute Select Queries
 func FireQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
 	db, err := sql.Open("mssql", dsn)
@@ -58,6 +61,7 @@ func FireQuery(username string, password string, host string, port string, dbnam
 	return result, nil
 }
 
+//CreateQuery is a function to execute the DDL Queries
 func CreateQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
 	db, err := sql.Open("mssql", dsn)
