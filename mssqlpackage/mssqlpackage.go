@@ -1,12 +1,24 @@
 package mssqlpackage
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 	//Import to get the MSSQL driver
 	_ "github.com/denisenkom/go-mssqldb"
 )
+
+func createContext(timeout int) context.Context {
+	timestr := strconv.Itoa(timeout)
+	timestr = timestr + `s`
+	d, _ := time.ParseDuration(timestr)
+	ctx := context.Background()
+	ctx, _ = context.WithTimeout(ctx, d)
+	return ctx
+}
 
 func dbconnect(conn string) (*sql.DB, error) { // connect to the database
 	db, err := sql.Open("mssql", conn)
@@ -23,7 +35,7 @@ func dbconnect(conn string) (*sql.DB, error) { // connect to the database
 }
 
 //UpdateQuery is used to execute DML operations like insert, update, delete
-func UpdateQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
+func UpdateQuery(username string, password string, host string, port string, dbname string, query string, timeout int) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
 	db, err := dbconnect(dsn)
 	if err != nil {
@@ -31,7 +43,8 @@ func UpdateQuery(username string, password string, host string, port string, dbn
 	}
 	defer closeconnection(db)
 
-	rows, err := db.Exec(query)
+	ctx := createContext(timeout)
+	rows, err := db.ExecContext(ctx, query)
 	if err != nil {
 		return "Error executing query", err
 	}
@@ -51,7 +64,7 @@ func closeconnection(dbconn *sql.DB) {
 }
 
 //FireQuery is used to execute Select Queries
-func FireQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
+func FireQuery(username string, password string, host string, port string, dbname string, query string, timeout int) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
 	db, err := dbconnect(dsn)
 	defer closeconnection(db)
@@ -59,7 +72,7 @@ func FireQuery(username string, password string, host string, port string, dbnam
 		return "", err
 	}
 	var result string
-	result, err = exec(db, query) //Calling the execute function
+	result, err = exec(db, query, timeout) //Calling the execute function
 	if err != nil {
 
 		return "", err
@@ -68,14 +81,15 @@ func FireQuery(username string, password string, host string, port string, dbnam
 }
 
 //CreateQuery is a function to execute the DDL Queries
-func CreateQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
+func CreateQuery(username string, password string, host string, port string, dbname string, query string, timeout int) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
 	db, err := dbconnect(dsn)
 	defer closeconnection(db)
 	if err != nil {
 		return "", err
 	}
-	_, err = db.Exec(query) //Executing the DDL Query
+	ctx := createContext(timeout)
+	_, err = db.ExecContext(ctx, query) //Executing the DDL Query
 	if err != nil {
 		return "", err
 	}
@@ -85,9 +99,10 @@ func CreateQuery(username string, password string, host string, port string, dbn
 
 }
 
-func exec(db *sql.DB, cmd string) (result string, err error) {
+func exec(db *sql.DB, cmd string, timeout int) (result string, err error) {
 	var op string
-	rows, err := db.Query(cmd) //Executing the query
+	ctx := createContext(timeout)
+	rows, err := db.QueryContext(ctx, cmd) //Executing the query
 	if err != nil {
 		return "", err
 	}
