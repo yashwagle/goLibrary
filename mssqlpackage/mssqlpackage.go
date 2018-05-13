@@ -8,7 +8,7 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
-func dbconnect(conn string) (*sql.DB, error) {
+func dbconnect(conn string) (*sql.DB, error) { // connect to the database
 	db, err := sql.Open("mssql", conn)
 	if err != nil {
 		//Cannot connect to DB
@@ -36,8 +36,7 @@ func UpdateQuery(username string, password string, host string, port string, dbn
 		return "Error executing query", err
 	}
 
-	//  fmt.Println(rows.RowsAffected())
-	num, err := rows.RowsAffected()
+	num, err := rows.RowsAffected() //Executing the query
 	if err != nil {
 		return "", err
 	}
@@ -62,7 +61,7 @@ func FireQuery(username string, password string, host string, port string, dbnam
 	var result string
 	result, err = exec(db, query) //Calling the execute function
 	if err != nil {
-		//fmt.Println(err)
+
 		return "", err
 	}
 	return result, nil
@@ -76,12 +75,12 @@ func CreateQuery(username string, password string, host string, port string, dbn
 	if err != nil {
 		return "", err
 	}
-	_, err = db.Exec(query)
+	_, err = db.Exec(query) //Executing the DDL Query
 	if err != nil {
 		return "", err
 	}
 
-	op := `{"Query Status":"Operation Successful"}` //Getting The row
+	op := `{"Query Status":"Operation Successful"}`
 	return op, nil
 
 }
@@ -119,9 +118,7 @@ func exec(db *sql.DB, cmd string) (result string, err error) {
 			continue
 		}
 		for i := 0; i < len(vals); i++ { //iterating through columns
-			if i != 0 {
-				//fmt.Print("\t")
-			}
+
 			v := (vals[i].(*interface{}))
 			str = fmt.Sprintf("%v", (*v))
 			currEle = `{"column":{"name":"` + cols[i] + `",` + `"value":"` + str + `"}}`
