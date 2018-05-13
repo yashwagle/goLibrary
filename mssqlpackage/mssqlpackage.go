@@ -8,18 +8,26 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
-//UpdateQuery is used to execute DML operations like insert, update, delete
-func UpdateQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
-	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
-	db, err := sql.Open("mssql", dsn)
+func dbconnect(conn string) (*sql.DB, error) {
+	db, err := sql.Open("mssql", conn)
 	if err != nil {
-		fmt.Println("Cannot connect: ", err.Error()) //Cannot connect to DB
-		return "Cannot connect: ", err
+		//Cannot connect to DB
+		return nil, err
 	}
 	err = db.Ping()
 	if err != nil {
-		fmt.Println("Cannot connect: ", err.Error()) //Cannot Connect to DB
-		return "Cannot connect: ", err
+		//Cannot Connect to DB
+		return nil, err
+	}
+	return db, nil
+}
+
+//UpdateQuery is used to execute DML operations like insert, update, delete
+func UpdateQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
+	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
+	db, err := dbconnect(dsn)
+	if err != nil {
+		return "Cannot Connect", err
 	}
 	defer closeconnection(db)
 
@@ -31,7 +39,7 @@ func UpdateQuery(username string, password string, host string, port string, dbn
 	//  fmt.Println(rows.RowsAffected())
 	num, err := rows.RowsAffected()
 	if err != nil {
-		return "Error", err
+		return "", err
 	}
 
 	op := `{"numberOfRowsAffected":"` + fmt.Sprintf("%v", num) + `"}` //Getting number of Rows Affected
@@ -46,22 +54,16 @@ func closeconnection(dbconn *sql.DB) {
 //FireQuery is used to execute Select Queries
 func FireQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
-	db, err := sql.Open("mssql", dsn)
-	if err != nil {
-		//fmt.Println("Cannot connect: ", err.Error())														//Cannot connect to DB
-		return "Cannot connect: ", err
-	}
-	err = db.Ping()
-	if err != nil {
-		//fmt.Println("Cannot connect: ", err.Error())												//Cannot Connect to DB
-		return "Cannot connect: ", err
-	}
+	db, err := dbconnect(dsn)
 	defer closeconnection(db)
+	if err != nil {
+		return "", err
+	}
 	var result string
 	result, err = exec(db, query) //Calling the execute function
 	if err != nil {
 		//fmt.Println(err)
-		return "Some error ", err
+		return "", err
 	}
 	return result, nil
 }
@@ -69,24 +71,17 @@ func FireQuery(username string, password string, host string, port string, dbnam
 //CreateQuery is a function to execute the DDL Queries
 func CreateQuery(username string, password string, host string, port string, dbname string, query string) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
-	db, err := sql.Open("mssql", dsn)
-	if err != nil {
-		fmt.Println("Cannot connect: ", err.Error()) //Cannot connect to DB
-		return "Cannot connect: ", err
-	}
-	err = db.Ping()
-	if err != nil {
-		fmt.Println("Cannot connect: ", err.Error()) //Cannot Connect to DB
-		return "Cannot connect: ", err
-	}
+	db, err := dbconnect(dsn)
 	defer closeconnection(db)
-
+	if err != nil {
+		return "", err
+	}
 	_, err = db.Exec(query)
 	if err != nil {
-		return "Error executing query", err
+		return "", err
 	}
 
-	op := `"Query Status":"Operation Successful"` //Getting The row
+	op := `{"Query Status":"Operation Successful"}` //Getting The row
 	return op, nil
 
 }
@@ -95,15 +90,15 @@ func exec(db *sql.DB, cmd string) (result string, err error) {
 	var op string
 	rows, err := db.Query(cmd) //Executing the query
 	if err != nil {
-		return "Erro executing query", err
+		return "", err
 	}
 	defer rows.Close()
-	cols, err := rows.Columns() //Getting the columns
+	cols, err := rows.Columns() //Getting the column names
 	if err != nil {
 		return "", err
 	}
 	if cols == nil {
-		return "No Columns", nil
+		return "", nil
 	}
 
 	vals := make([]interface{}, len(cols))
@@ -125,7 +120,7 @@ func exec(db *sql.DB, cmd string) (result string, err error) {
 		}
 		for i := 0; i < len(vals); i++ { //iterating through columns
 			if i != 0 {
-				fmt.Print("\t")
+				//fmt.Print("\t")
 			}
 			v := (vals[i].(*interface{}))
 			str = fmt.Sprintf("%v", (*v))
@@ -137,7 +132,7 @@ func exec(db *sql.DB, cmd string) (result string, err error) {
 
 	}
 	if rows.Err() != nil {
-		return "Some error", rows.Err()
+		return "", rows.Err()
 	}
 	op = strings.TrimSuffix(op, `,`)
 	op = op + `]}`
