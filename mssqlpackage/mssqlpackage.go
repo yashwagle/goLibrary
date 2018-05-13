@@ -11,6 +11,7 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
+//Create Context for timeout of query
 func createContext(timeout int) context.Context {
 	timestr := strconv.Itoa(timeout)
 	timestr = timestr + `s`
