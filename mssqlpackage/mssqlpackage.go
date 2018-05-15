@@ -68,10 +68,10 @@ func closeconnection(dbconn *sql.DB) {
 func FireQuery(username string, password string, host string, port string, dbname string, query string, timeout int) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
 	db, err := dbconnect(dsn)
-	defer closeconnection(db)
 	if err != nil {
 		return "", err
 	}
+	defer closeconnection(db)
 	var result string
 	result, err = exec(db, query, timeout) //Calling the execute function
 	if err != nil {
@@ -85,10 +85,11 @@ func FireQuery(username string, password string, host string, port string, dbnam
 func CreateQuery(username string, password string, host string, port string, dbname string, query string, timeout int) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
 	db, err := dbconnect(dsn)
-	defer closeconnection(db)
+
 	if err != nil {
 		return "", err
 	}
+	defer closeconnection(db)
 	ctx := createContext(timeout)
 	_, err = db.ExecContext(ctx, query) //Executing the DDL Query
 	if err != nil {
