@@ -39,11 +39,10 @@ func dbconnect(conn string) (*sql.DB, error) { // connect to the database
 func UpdateQuery(username string, password string, host string, port string, dbname string, query string, timeout int) (string, error) {
 	dsn := "server=" + host + ";user id=" + username + ";password=" + password + ";port=" + port + ";database=" + dbname //constructing the URL
 	db, err := dbconnect(dsn)
-
-	defer closeconnection(db)
 	if err != nil {
 		return "Cannot Connect", err
 	}
+	defer closeconnection(db)
 
 	ctx := createContext(timeout)
 	rows, err := db.ExecContext(ctx, query)
