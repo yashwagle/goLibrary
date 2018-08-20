@@ -1,15 +1,17 @@
-package urlShortner
+package main
 
-import "net/http"
+import (
+	"fmt"
 
-func MapHandler(pathstoUrls map[string]string, fallback http.Handler) http.HandlerFunc {
+	"github.com/tidwall/gjson"
+)
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := pathstoUrls[r.RequestURI]
-		if res == "" {
-			fallback.ServeHTTP(w, r)
-		} else {
-			http.Redirect(w, r, res, 301)
-		}
-	})
+func main() {
+	jsonPaths := `{
+	"/fb": "https://www.facebook.com/",
+	"/yt": "https://www.youtube.com/"
+}`
+	str := gjson.Get(jsonPaths, "/yt")
+
+	fmt.Println(str)
 }
