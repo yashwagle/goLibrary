@@ -3,15 +3,22 @@
 
 </head>
 <body>
-<div id="container">
+<div id="container"></div>
 <p id="p1">Enter this paragraph.</p>
-</div>
-<script src="http://127.0.0.1:9999//scripts/jquery-3.3.1.js"></script>
+
+<script src="http://127.0.0.1:9999/scripts/jquery-3.3.1.js"></script>
 <script>
 $(document).ready(function(){
     $("#p1").click(function(){
         alert("You entered p1!");
     });
+    $("#container").load("http://localhost:9999/start",function(response,status,xhr){
+      if(status=="success"){
+        alert(response)
+      }
+      if(status=="error")
+      alert("error")
+    })
 
 });
 
